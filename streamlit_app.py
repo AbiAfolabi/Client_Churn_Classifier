@@ -224,3 +224,21 @@ elif page == "Make Prediction":
                     
             except Exception as e:
                 st.error(f"❌ Error making prediction: {str(e)}")
+
+!pip install streamlit pandas gspread gspread-dataframe
+
+import streamlit as st
+import pandas as pd
+import gspread
+from gspread_dataframe import get_as_dataframe
+
+# Authenticate and connect to Google Sheets (if you're using OAuth)
+# gc = gspread.service_account(filename='path_to_your_credentials.json')
+
+gc = gspread.authorize(credentials=None)  # This would use an unauthenticated public access to the sheet
+
+# Alternatively, for a public sheet, you can use the URL or sheet key directly:
+sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXUCJRkYyqkfNFbyjRkB5NyP4pL4Khh00bmHegBZOpFf9BparWuCsxx7-C7m-Uy6DNBn7fSBs21NKi/pubhtml"
+
+# Open the sheet using the URL or the sheet ID
+worksheet = gc.open_by_url(sheet_url).sheet1
