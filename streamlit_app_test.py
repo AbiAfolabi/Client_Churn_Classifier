@@ -7,8 +7,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import re
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 from gspread_dataframe import get_as_dataframe
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
 
 # Set page configuration
 st.set_page_config(
@@ -26,7 +28,7 @@ with col2:
 # Header
 st.markdown(
     """
-    <h1 style='text-align: center; color: #ff5733; padding: 20px;'>
+    <h1 style='text-align: center; color: #ff5733; padding: 20px;' >
     IFSSA Client Return Prediction
     </h1>
     <p style='text-align: center; font-size: 1.1rem;' >
@@ -36,24 +38,37 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ================== Google Sheets Connection with OAuth 2.0 ==================
-# Fetch Data from Google Sheets (OAuth Authentication)
+# ================== Google Sheets Connection (Using OAuth2 Authentication) ==================
+# Fetch Data from Google Sheets using OAuth2 Authentication
 @st.cache_data
 def load_google_sheet():
-    # Use OAuth 2.0 credentials to authenticate
-    # Replace with the path to your `credentials.json` file
-    CLIENT_SECRET_FILE = 'credentials.json'  # path to your OAuth 2.0 credentials file
-    SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly', 'https://www.googleapis.com/auth/drive.readonly']
+    # Define the scope and credentials path
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+    credentials = None
 
-    # Authenticate using the service account
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(CLIENT_SECRET_FILE, SCOPES)
+    # The file token.json stores the user's access and refresh tokens, and is created automatically when the authorization flow completes for the first time.
+    if os.path.exists('token.json'):
+        credentials = Credentials.from_authorized_user_file('token.json', SCOPES)
+    
+    # If there are no (valid) credentials available, let the user log in.
+    if not credentials or not credentials.valid:
+        if credentials and credentials.expired and credentials.refresh_token:
+            credentials.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+            credentials = flow.run_local_server(port=0)
+
+        # Save the credentials for the next run
+        with open('token.json', 'w') as token:
+            token.write(credentials.to_json())
+
+    # Connect to Google Sheets using OAuth2 credentials
     gc = gspread.authorize(credentials)
 
-    # Open the Google Sheet by URL
+    # Open the Google Sheet by URL (replace with your actual sheet URL)
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
     spreadsheet = gc.open_by_url(sheet_url)
-
-    # Select the first worksheet
     worksheet = spreadsheet.get_worksheet(0)
 
     # Fetch the data as a DataFrame
@@ -94,7 +109,7 @@ if page == "About":
     - Facilitate Informed Decision Making
     - Ensure Scalability and Flexibility
     """)
-
+    
 # ================== Feature Analysis ==================
 elif page == "Feature Analysis":
     st.markdown("## Statistically Validated Predictors")
@@ -159,97 +174,4 @@ elif page == "Make Prediction":
     with col1:
         # Recent Pickup Information
         pickup_count_last_14_days = st.number_input("Pickups in last 14 days:", min_value=0, value=0)
-        pickup_count_last_30_days = st.number_input("Pickups in last 30 days:", min_value=0, value=0)
-        weekly_visits = st.number_input("Weekly Visits:", min_value=0, value=3)
-
-    with col2:
-        total_dependents_3_months = st.number_input("Total Dependents in Last 3 Months:", min_value=0, value=2)
-        time_since_first_visit = st.number_input("Time Since First Visit (days):", min_value=1, max_value=366, value=30)
-        pickup_week = st.number_input("Pickup Week (1-52):", min_value=1, max_value=52, value=1)
-
-    # Additional Features
-    st.markdown("<h3 style='color: #ff5733;'>Additional Information</h3>", unsafe_allow_html=True)
-    col3, col4 = st.columns(2)
-    with col3:
-        Holidays = 1 if st.radio("Is this pick-up during a holiday?", ["No", "Yes"]) == "Yes" else 0
-    
-    with col4:
-        # Canadian Postal Code Input with validation
-        def validate_postal_code(postal_code):
-            if not postal_code:
-                return False
-            # Remove spaces and convert to uppercase
-            clean_code = postal_code.replace(" ", "").upper()
-            # Check pattern (A1A1A1)
-            if len(clean_code) != 6:
-                return False
-            pattern = re.compile(r'^[A-Z]\d[A-Z]\d[A-Z]\d$')
-            return bool(pattern.match(clean_code))
-        
-        postal_code = st.text_input("Postal Code (A1A 1A1 format):", 
-                                  max_chars=7,
-                                  help="Enter Canadian postal code (e.g., M5V 3L9)")
-        
-        # Validate format
-        if postal_code and not validate_postal_code(postal_code):
-            st.warning("Please enter a valid Canadian postal code (e.g., A1A 1A1)")
-
-    # Prepare input data (ensure the column order matches the trained model's order)
-    input_data = pd.DataFrame([[
-        weekly_visits,
-        total_dependents_3_months,
-        pickup_count_last_30_days,
-        pickup_count_last_14_days,
-        Holidays,
-        pickup_week,
-        postal_code.replace(" ", "").upper()[:6] if postal_code else "",
-        time_since_first_visit
-    ]], columns=[
-        'weekly_visits',
-        'total_dependents_3_months',
-        'pickup_count_last_30_days',
-        'pickup_count_last_14_days',
-        'Holidays',
-        'pickup_week',
-        'postal_code',
-        'time_since_first_visit'
-    ])
-
-    # Ensure the columns are in the same order as the trained model
-    model_feature_order = [
-        'weekly_visits',
-        'total_dependents_3_months',
-        'pickup_count_last_30_days',
-        'pickup_count_last_14_days',
-        'Holidays',
-        'pickup_week',
-        'postal_code',
-        'time_since_first_visit'
-    ]
-
-    input_data = input_data[model_feature_order]  # Reorder columns to match the model's expected order
-
-    # Prediction Button
-    if st.button("Predict Return Probability"):
-        if not postal_code:
-            st.error("Please enter a postal code")
-        elif not validate_postal_code(postal_code):
-            st.error("Please enter a valid Canadian postal code (format: A1A 1A1)")
-        elif model is None:
-            st.error("❌ No trained model found.")
-        else:
-            try:
-                prediction = model.predict(input_data)
-                probability = model.predict_proba(input_data)[:, 1][0]
-                
-                st.markdown("<h3 style='color: #ff33aa;'>Prediction Result</h3>", unsafe_allow_html=True)
-                st.write(f"🎯 **Predicted Outcome:** {'Will Return' if prediction[0] == 1 else 'Will Not Return'}")
-                st.write(f"📊 **Probability of Returning:** {probability:.1%}")
-                
-                if prediction[0] == 1:
-                    st.success("✅ This client is likely to return within 3 months")
-                else:
-                    st.warning("⚠️ This client is unlikely to return within 3 months")
-                    
-            except Exception as e:
-                st.error(f"❌ Error making prediction: {str(e)}")
+        pickup_count_last_30_days = st.number_input("Pickups in last 30_
