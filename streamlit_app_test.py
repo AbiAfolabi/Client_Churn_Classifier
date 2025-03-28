@@ -202,17 +202,7 @@ elif page == "Make Prediction":
 
     input_data = input_data[model_feature_order]  # Reorder columns to match the model's expected order
 
-    # Debug: Check column names of the input data
-    st.write("Input Data Columns:")
-    st.write(input_data.columns.tolist())
-
-    # Debug: Check the feature names used during model training
-    try:
-        model_features = model.feature_names_in_ if hasattr(model, 'feature_names_in_') else None
-        st.write("Model Features (Trained Columns):")
-        st.write(model_features)
-    except AttributeError:
-        st.warning("Model does not have 'feature_names_in_' attribute.")
+    
 
     # Prediction Button
     if st.button("Predict Return Probability"):
@@ -238,3 +228,4 @@ elif page == "Make Prediction":
                     
             except Exception as e:
                 st.error(f"❌ Error making prediction: {str(e)}")
+
