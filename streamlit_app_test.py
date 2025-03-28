@@ -231,16 +231,16 @@ elif page == "Make Prediction":
 
 # ================== GSpread Integration ==================
 
-# Try accessing the public sheet
+# Access the public sheet
 try:
-    # Public sheets can be accessed without authentication
-    gc = gspread.authorize(None)  # Works if the sheet is public
-    
-    # Access the public sheet by URL
+    # Access the Google Sheet using gspread's open_by_url
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
+    
+    # Open the sheet by its URL and fetch data
+    gc = gspread.Client(None)
     worksheet = gc.open_by_url(sheet_url).sheet1
 
-    # Get data from the sheet as a DataFrame
+    # Convert sheet data to a dataframe
     df = get_as_dataframe(worksheet)
 
     # Display data in Streamlit
