@@ -28,12 +28,40 @@ st.markdown(
     <h1 style='text-align: center; color: #ff5733; padding: 20px;'>
     IFSSA Client Return Prediction
     </h1>
-    <p style='text-align: center; font-size: 1.1rem;'>
+    <p style='text-align: center; font-size: 1.1rem;' >
     Predict which clients will return within 3 months using statistically validated features
     </p>
     """,
     unsafe_allow_html=True
 )
+
+# ================== Google Sheets Connection ==================
+# Fetch Data from Google Sheets (Public)
+@st.cache_data
+def load_google_sheet():
+    # Connect to Google Sheets using the published link
+    sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
+    
+    # Extract the ID of the spreadsheet from the URL
+    spreadsheet_id = sheet_url.split('/')[5]
+    
+    # Open the sheet using the spreadsheet ID
+    gc = gspread.service_account(filename='path_to_your_service_account_credentials.json')  # Path to service account credentials
+    spreadsheet = gc.open_by_key(spreadsheet_id)
+    
+    # Select the first worksheet
+    worksheet = spreadsheet.get_worksheet(0)
+    
+    # Fetch the data as a DataFrame
+    sheet_data = get_as_dataframe(worksheet)
+    return sheet_data
+
+# Load Google Sheets data
+try:
+    google_sheet_data = load_google_sheet()
+    st.write(google_sheet_data)
+except Exception as e:
+    st.error(f"Failed to load data from Google Sheets: {e}")
 
 # ================== Navigation ==================
 page = st.sidebar.radio(
@@ -44,7 +72,7 @@ page = st.sidebar.radio(
 
 # ================== About Page ==================
 if page == "About":
-    st.markdown("""
+    st.markdown(""" 
     ## About This Tool
     
     This application helps IFSSA predict which clients are likely to return for services 
@@ -67,7 +95,6 @@ if page == "About":
 elif page == "Feature Analysis":
     st.markdown("## Statistically Validated Predictors")
     
-    # Chi-square test results (from your data)
     chi2_results = {
         'monthly_visits': 0.000000e+00,
         'weekly_visits': 0.000000e+00,
@@ -82,12 +109,10 @@ elif page == "Feature Analysis":
         'time_since_first_visit': 7.845354e-04
     }
     
-    # Convert to dataframe
     chi_df = pd.DataFrame.from_dict(chi2_results, orient='index', columns=['p-value'])
-    chi_df['-log10(p)'] = -np.log10(chi_df['p-value'].replace(0, 1e-300))  # Handle zero p-values
+    chi_df['-log10(p)'] = -np.log10(chi_df['p-value'].replace(0, 1e-300))
     chi_df = chi_df.sort_values('-log10(p)', ascending=False)
     
-    # Visualization
     st.markdown("### Feature Significance (-log10 p-values)")
     plt.figure(figsize=(10, 6))
     ax = sns.barplot(x='-log10(p)', y=chi_df.index, data=chi_df, palette="viridis")
@@ -96,10 +121,8 @@ elif page == "Feature Analysis":
     plt.ylabel("Features")
     plt.title("Chi-Square Test Results for Feature Selection")
     st.pyplot(plt)
-    
-    # Interpretation
-    st.markdown("""
-    **Key Insights**:
+
+    st.markdown(""" **Key Insights**:
     - All shown features are statistically significant (p < 0.05)
     - Visit frequency metrics are strongest predictors (p ≈ 0)
     - Holiday effects are 10^90 times more significant than chance
@@ -109,7 +132,7 @@ elif page == "Feature Analysis":
 # ================== Make Prediction Page ==================
 elif page == "Make Prediction":
     st.markdown("<h2 style='color: #33aaff;'>Client Return Prediction</h2>", unsafe_allow_html=True)
-
+    
     # Load Model Function
     def load_model():
         model_path = "RF_model.pkl"
@@ -202,8 +225,6 @@ elif page == "Make Prediction":
 
     input_data = input_data[model_feature_order]  # Reorder columns to match the model's expected order
 
-    
-
     # Prediction Button
     if st.button("Predict Return Probability"):
         if not postal_code:
@@ -228,4 +249,3 @@ elif page == "Make Prediction":
                     
             except Exception as e:
                 st.error(f"❌ Error making prediction: {str(e)}")
-
