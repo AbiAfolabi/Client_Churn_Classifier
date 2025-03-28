@@ -42,8 +42,8 @@ def load_google_sheet():
     # Connect to Google Sheets using the published link (No authentication needed)
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
     
-    # Use the URL to open the sheet directly using gspread without authentication
-    gc = gspread.Client(None)  # No authentication is needed for public sheets
+    # Open the Google Sheet using the URL (without authentication)
+    gc = gspread.Client(None)  # No authentication required
     gc.session = gc.authorize(None)  # Set up a session without credentials
     
     # Open the sheet by its URL
