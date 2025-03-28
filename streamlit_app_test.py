@@ -8,6 +8,7 @@ import seaborn as sns
 import re
 import gspread
 from gspread_dataframe import get_as_dataframe
+from oauth2client.service_account import ServiceAccountCredentials
 
 # Set page configuration
 st.set_page_config(
@@ -207,7 +208,7 @@ elif page == "Make Prediction":
         if not postal_code:
             st.error("Please enter a postal code")
         elif not validate_postal_code(postal_code):
-            st.error("Please enter a valid Canadian postal code (format: A1A 1A1)")
+            st.error("Please enter a valid Canadian postal code (format: A1A 1A1) ")
         elif model is None:
             st.error("❌ No trained model found.")
         else:
@@ -229,17 +230,22 @@ elif page == "Make Prediction":
 
 # ================== GSpread Integration ==================
 
-# Access Public Google Sheet without authentication
+# Access Google Sheet using gspread and Service Account
 try:
-    gc = gspread.Client(None)  # Ensure no authentication is used for public sheet access
+    # Define scope and credentials
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds = ServiceAccountCredentials.from_json_keyfile_name('your-service-account-file.json', scope)
     
-    # Access the public sheet by URL
+    # Authenticate using credentials
+    client = gspread.authorize(creds)
+    
+    # Access the Google Sheet by URL
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
-    worksheet = gc.open_by_url(sheet_url).sheet1
-
+    worksheet = client.open_by_url(sheet_url).sheet1
+    
     # Get data from the sheet as a DataFrame
     df = get_as_dataframe(worksheet)
-
+    
     # Display data in Streamlit
     st.write("Google Sheet Data:", df)
 
