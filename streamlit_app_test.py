@@ -246,3 +246,6 @@ try:
 
 except Exception as e:
     st.error(f"Unexpected error: {e}")
+
+st.write("Google Sheet Data:", df)
+
