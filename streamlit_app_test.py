@@ -38,11 +38,10 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ================== Google Sheets Connection (Using OAuth2 Authentication) ==================
-# Fetch Data from Google Sheets using OAuth2 Authentication
+# ================== Google Sheets Connection (Using OAuth2 Authentication - Manual Flow) ==================
+# Fetch Data from Google Sheets using OAuth2 Authentication (manual flow)
 @st.cache_data
 def load_google_sheet():
-    # Define the scope and credentials path
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
     credentials = None
 
@@ -50,18 +49,33 @@ def load_google_sheet():
     if os.path.exists('token.json'):
         credentials = Credentials.from_authorized_user_file('token.json', SCOPES)
     
-    # If there are no (valid) credentials available, let the user log in.
+    # If there are no (valid) credentials available, let the user log in manually.
     if not credentials or not credentials.valid:
         if credentials and credentials.expired and credentials.refresh_token:
             credentials.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
                 'credentials.json', SCOPES)
-            credentials = flow.run_local_server(port=0)
+            
+            # Manual authentication flow
+            auth_url, _ = flow.authorization_url(prompt='consent')
+            st.write("Please visit the following URL to authorize the application:")
+            st.markdown(f"[Authorize Here]({auth_url})")
 
-        # Save the credentials for the next run
-        with open('token.json', 'w') as token:
-            token.write(credentials.to_json())
+            # Request the authorization code from the user
+            auth_code = st.text_input("Enter the authorization code here:")
+
+            if auth_code:
+                # Use the code to fetch the credentials
+                credentials = flow.fetch_token(
+                    'https://oauth2.googleapis.com/token',
+                    authorization_response=f'{auth_url}&code={auth_code}',
+                    client_secret='YOUR_CLIENT_SECRET')
+
+                # Save the credentials for the next run
+                with open('token.json', 'w') as token:
+                    token.write(credentials.to_json())
+                st.success("Authorization successful! You can now access the data.")
 
     # Connect to Google Sheets using OAuth2 credentials
     gc = gspread.authorize(credentials)
@@ -109,7 +123,7 @@ if page == "About":
     - Facilitate Informed Decision Making
     - Ensure Scalability and Flexibility
     """)
-    
+
 # ================== Feature Analysis ==================
 elif page == "Feature Analysis":
     st.markdown("## Statistically Validated Predictors")
