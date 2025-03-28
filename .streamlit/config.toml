@@ -1,0 +1,6 @@
+[general]
+email = "aaafolab@ualberta.ca"  # Replace with your email (if necessary)
+
+[server]
+headless = true  # Ensure the app runs headlessly (no browser pop-up)
+enableCORS = false  # Allow cross-origin requests
