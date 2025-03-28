@@ -233,9 +233,9 @@ try:
     # Access the public sheet by URL
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
     
-    # Using gspread to connect without authentication (works for public sheets)
-    gc = gspread.service_account(filename=None)  # This will attempt to connect to a public sheet without a service account
-    
+    # Open the sheet using gspread without authentication (works for public sheets)
+    gc = gspread.oauth()  # This skips authentication for public sheets
+
     st.write("Trying to connect to Google Sheet...")  # Debug message to indicate connection attempt
     
     # Open the sheet using the URL
