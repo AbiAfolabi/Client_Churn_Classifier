@@ -42,12 +42,9 @@ def load_google_sheet():
     # Connect to Google Sheets using the published link
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
     
-    # Extract the ID of the spreadsheet from the URL
-    spreadsheet_id = sheet_url.split('/')[5]
-    
-    # Open the sheet using the spreadsheet ID
-    gc = gspread.authorize(None)  # No authentication needed for public sheets
-    spreadsheet = gc.open_by_key(spreadsheet_id)
+    # Use the URL to open the sheet directly
+    gc = gspread.service_account()  # No authentication for public sheets required
+    spreadsheet = gc.open_by_url(sheet_url)
     
     # Select the first worksheet
     worksheet = spreadsheet.get_worksheet(0)
