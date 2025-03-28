@@ -38,7 +38,7 @@ st.markdown(
 # ================== Navigation ==================
 page = st.sidebar.radio(
     "Navigation",
-    ["About", "Feature Analysis", "Make Prediction"],
+    ["About", "Feature Analysis", "Make Prediction", "View Google Sheet Data"],  # Added "View Google Sheet Data"
     index=2
 )
 
@@ -168,7 +168,7 @@ elif page == "Make Prediction":
             st.warning("Please enter a valid Canadian postal code (e.g., A1A 1A1)")
 
     # Prepare input data (ensure the column order matches the trained model's order)
-    input_data = pd.DataFrame([[ 
+    input_data = pd.DataFrame([[
         weekly_visits,
         total_dependents_3_months,
         pickup_count_last_30_days,
@@ -177,7 +177,7 @@ elif page == "Make Prediction":
         pickup_week,
         postal_code.replace(" ", "").upper()[:6] if postal_code else "",
         time_since_first_visit
-    ]], columns=[ 
+    ]], columns=[
         'weekly_visits',
         'total_dependents_3_months',
         'pickup_count_last_30_days',
@@ -207,7 +207,7 @@ elif page == "Make Prediction":
         if not postal_code:
             st.error("Please enter a postal code")
         elif not validate_postal_code(postal_code):
-            st.error("Please enter a valid Canadian postal code (format: A1A 1A1) ")
+            st.error("Please enter a valid Canadian postal code (format: A1A 1A1)")
         elif model is None:
             st.error("❌ No trained model found.")
         else:
@@ -227,30 +227,21 @@ elif page == "Make Prediction":
             except Exception as e:
                 st.error(f"❌ Error making prediction: {str(e)}")
 
-# ================== GSpread Integration (Public Access) ==================
+# ================== View Google Sheet Data ==================
+elif page == "View Google Sheet Data":
+    st.markdown("<h2 style='color: #33aaff;'>Google Sheet Data</h2>", unsafe_allow_html=True)
 
-# ================== GSpread Integration (Public Access) ==================
+    # Fetch data from the public Google Sheet and display it
+    gc = gspread.service_account()  # Skips authentication for public sheets
 
-# Access Public Google Sheet without authentication
-try:
-    # Access the public sheet by URL
-    sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
-    
-    # Open the sheet using gspread
-    gc = gspread.Client(None)  # No authentication required for public sheet
+    # Provide the URL of the public Google Sheet
+    sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXUCJRkYyqkfNFbyjRkB5NyP4pL4Khh00bmHegBZOpFf9BparWuCsxx7-C7m-Uy6DNBn7fSBs21NKi/pubhtml"
+
+    # Open the sheet by URL
     worksheet = gc.open_by_url(sheet_url).sheet1
 
     # Get data from the sheet as a DataFrame
     df = get_as_dataframe(worksheet)
 
-    # Display data in Streamlit
-    st.write("Google Sheet Data:", df)  # This will print the sheet data on the page
-
-    # Check if the data is successfully fetched by printing the shape of the DataFrame
-    st.write("Shape of data fetched from Google Sheets:", df.shape)
-    
-    # Confirm successful connection
-    st.success("✅ Successfully connected to Google Sheet and fetched data.")
-
-except Exception as e:
-    st.error(f"❌ Error connecting to Google Sheet: {str(e)}")
+    # Display the data in the Streamlit app
+    st.write("Google Sheet Data:", df)
