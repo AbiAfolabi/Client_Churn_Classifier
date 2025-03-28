@@ -9,6 +9,19 @@ import re  # Added this import for postal code validation
 import gspread
 from gspread_dataframe import get_as_dataframe
 
+# Skip Authentication by using public access (for public sheets)
+gc = gspread.authorize(credentials=None)  # This works if your sheet is public
+
+# Access the public sheet by URL
+sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXUCJRkYyqkfNFbyjRkB5NyP4pL4Khh00bmHegBZOpFf9BparWuCsxx7-C7m-Uy6DNBn7fSBs21NKi/pubhtml"
+worksheet = gc.open_by_url(sheet_url).sheet1
+
+# Get data from the sheet as a DataFrame
+df = get_as_dataframe(worksheet)
+
+# Display the data in Streamlit
+st.write("Google Sheet Data:", df)
+
 
 # Set page configuration
 st.set_page_config(
