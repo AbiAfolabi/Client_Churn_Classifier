@@ -8,7 +8,6 @@ import seaborn as sns
 import re
 import gspread
 from gspread_dataframe import get_as_dataframe
-from oauth2client.service_account import ServiceAccountCredentials
 
 # Set page configuration
 st.set_page_config(
@@ -228,24 +227,19 @@ elif page == "Make Prediction":
             except Exception as e:
                 st.error(f"❌ Error making prediction: {str(e)}")
 
-# ================== GSpread Integration ==================
+# ================== GSpread Integration (Public Access) ==================
 
-# Access Google Sheet using gspread and Service Account
+# Access Public Google Sheet without authentication
 try:
-    # Define scope and credentials
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name('your-service-account-file.json', scope)
+    gc = gspread.Client(None)  # No authentication required for public sheet
     
-    # Authenticate using credentials
-    client = gspread.authorize(creds)
-    
-    # Access the Google Sheet by URL
+    # Access the public sheet by URL
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
-    worksheet = client.open_by_url(sheet_url).sheet1
-    
+    worksheet = gc.open_by_url(sheet_url).sheet1
+
     # Get data from the sheet as a DataFrame
     df = get_as_dataframe(worksheet)
-    
+
     # Display data in Streamlit
     st.write("Google Sheet Data:", df)
 
