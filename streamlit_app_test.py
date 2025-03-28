@@ -7,10 +7,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import re
 import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 from gspread_dataframe import get_as_dataframe
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
 
 # Set page configuration
 st.set_page_config(
@@ -28,7 +26,7 @@ with col2:
 # Header
 st.markdown(
     """
-    <h1 style='text-align: center; color: #ff5733; padding: 20px;' >
+    <h1 style='text-align: center; color: #ff5733; padding: 20px;'>
     IFSSA Client Return Prediction
     </h1>
     <p style='text-align: center; font-size: 1.1rem;' >
@@ -38,51 +36,24 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ================== Google Sheets Connection (Using OAuth2 Authentication - Manual Flow) ==================
-# Fetch Data from Google Sheets using OAuth2 Authentication (manual flow)
+# ================== Google Sheets Connection with OAuth 2.0 ==================
+# Fetch Data from Google Sheets (OAuth Authentication)
 @st.cache_data
 def load_google_sheet():
-    SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-    credentials = None
+    # Use OAuth 2.0 credentials to authenticate
+    # Replace with the path to your `credentials.json` file
+    CLIENT_SECRET_FILE = 'credentials.json'  # path to your OAuth 2.0 credentials file
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly', 'https://www.googleapis.com/auth/drive.readonly']
 
-    # The file token.json stores the user's access and refresh tokens, and is created automatically when the authorization flow completes for the first time.
-    if os.path.exists('token.json'):
-        credentials = Credentials.from_authorized_user_file('token.json', SCOPES)
-    
-    # If there are no (valid) credentials available, let the user log in manually.
-    if not credentials or not credentials.valid:
-        if credentials and credentials.expired and credentials.refresh_token:
-            credentials.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            
-            # Manual authentication flow
-            auth_url, _ = flow.authorization_url(prompt='consent')
-            st.write("Please visit the following URL to authorize the application:")
-            st.markdown(f"[Authorize Here]({auth_url})")
-
-            # Request the authorization code from the user
-            auth_code = st.text_input("Enter the authorization code here:")
-
-            if auth_code:
-                # Use the code to fetch the credentials
-                credentials = flow.fetch_token(
-                    'https://oauth2.googleapis.com/token',
-                    authorization_response=f'{auth_url}&code={auth_code}',
-                    client_secret='YOUR_CLIENT_SECRET')
-
-                # Save the credentials for the next run
-                with open('token.json', 'w') as token:
-                    token.write(credentials.to_json())
-                st.success("Authorization successful! You can now access the data.")
-
-    # Connect to Google Sheets using OAuth2 credentials
+    # Authenticate using the service account
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(CLIENT_SECRET_FILE, SCOPES)
     gc = gspread.authorize(credentials)
 
-    # Open the Google Sheet by URL (replace with your actual sheet URL)
+    # Open the Google Sheet by URL
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
     spreadsheet = gc.open_by_url(sheet_url)
+
+    # Select the first worksheet
     worksheet = spreadsheet.get_worksheet(0)
 
     # Fetch the data as a DataFrame
@@ -224,7 +195,7 @@ elif page == "Make Prediction":
             st.warning("Please enter a valid Canadian postal code (e.g., A1A 1A1)")
 
     # Prepare input data (ensure the column order matches the trained model's order)
-    input_data = pd.DataFrame([[ 
+    input_data = pd.DataFrame([[
         weekly_visits,
         total_dependents_3_months,
         pickup_count_last_30_days,
@@ -233,7 +204,7 @@ elif page == "Make Prediction":
         pickup_week,
         postal_code.replace(" ", "").upper()[:6] if postal_code else "",
         time_since_first_visit
-    ]], columns=[ 
+    ]], columns=[
         'weekly_visits',
         'total_dependents_3_months',
         'pickup_count_last_30_days',
