@@ -26,7 +26,7 @@ with col2:
 # Header
 st.markdown(
     """
-    <h1 style='text-align: center; color: #ff5733; padding: 20px;'>
+    <h1 style='text-align: center; color: #ff5733; padding: 20px;' >
     IFSSA Client Return Prediction
     </h1>
     <p style='text-align: center; font-size: 1.1rem;' >
@@ -36,26 +36,27 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ================== Google Sheets Connection with OAuth 2.0 ==================
-# Fetch Data from Google Sheets (OAuth Authentication)
+# ================== Google Sheets Connection (With OAuth2 Authentication) ==================
 @st.cache_data
 def load_google_sheet():
-    # Use OAuth 2.0 credentials to authenticate
-    # Replace with the path to your `credentials.json` file
-    CLIENT_SECRET_FILE = 'credentials.json'  # path to your OAuth 2.0 credentials file
-    SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly', 'https://www.googleapis.com/auth/drive.readonly']
+    # Define the scope of access required
+    scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 
-    # Authenticate using the service account
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(CLIENT_SECRET_FILE, SCOPES)
+    # Use the service account credentials JSON file (ensure the path is correct)
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(
+        'path/to/your-service-account-file.json', scope
+    )
+
+    # Authorize and create a gspread client
     gc = gspread.authorize(credentials)
 
-    # Open the Google Sheet by URL
+    # Open the Google Sheet using its URL
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
     spreadsheet = gc.open_by_url(sheet_url)
-
+    
     # Select the first worksheet
     worksheet = spreadsheet.get_worksheet(0)
-
+    
     # Fetch the data as a DataFrame
     sheet_data = get_as_dataframe(worksheet)
     return sheet_data
@@ -204,7 +205,7 @@ elif page == "Make Prediction":
         pickup_week,
         postal_code.replace(" ", "").upper()[:6] if postal_code else "",
         time_since_first_visit
-    ]], columns=[
+    ]], columns=[ 
         'weekly_visits',
         'total_dependents_3_months',
         'pickup_count_last_30_days',
