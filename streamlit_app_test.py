@@ -181,3 +181,63 @@ elif page == "Make Prediction":
         'weekly_visits',
         'total_dependents_3_months',
         'pickup_count_last_30_days',
+        'pickup_count_last_14_days',
+        'Holidays',
+        'pickup_week',
+        'postal_code',
+        'time_since_first_visit'
+    ])
+
+    # Ensure the columns are in the same order as the trained model
+    model_feature_order = [
+        'weekly_visits',
+        'total_dependents_3_months',
+        'pickup_count_last_30_days',
+        'pickup_count_last_14_days',
+        'Holidays',
+        'pickup_week',
+        'postal_code',
+        'time_since_first_visit'
+    ]
+
+    input_data = input_data[model_feature_order]  # Reorder columns to match the model's expected order
+
+    # Prediction Button
+    if st.button("Predict Return Probability"):
+        if not postal_code:
+            st.error("Please enter a postal code")
+        elif not validate_postal_code(postal_code):
+            st.error("Please enter a valid Canadian postal code (format: A1A 1A1)")
+        elif model is None:
+            st.error("❌ No trained model found.")
+        else:
+            try:
+                prediction = model.predict(input_data)
+                probability = model.predict_proba(input_data)[:, 1][0]
+                
+                st.markdown("<h3 style='color: #ff33aa;'>Prediction Result</h3>", unsafe_allow_html=True)
+                st.write(f"🎯 **Predicted Outcome:** {'Will Return' if prediction[0] == 1 else 'Will Not Return'}")
+                st.write(f"📊 **Probability of Returning:** {probability:.1%}")
+                
+                if prediction[0] == 1:
+                    st.success("✅ This client is likely to return within 3 months")
+                else:
+                    st.warning("⚠️ This client is unlikely to return within 3 months")
+                    
+            except Exception as e:
+                st.error(f"❌ Error making prediction: {str(e)}")
+
+# ================== GSpread Integration ==================
+
+# Use public access to read the Google Sheet without authentication
+gc = gspread.authorize(credentials=None)  # This works if your sheet is public
+
+# Access the public sheet by URL
+sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXUCJRkYyqkfNFbyjRkB5NyP4pL4Khh00bmHegBZOpFf9BparWuCsxx7-C7m-Uy6DNBn7fSBs21NKi/pubhtml"
+worksheet = gc.open_by_url(sheet_url).sheet1
+
+# Get data from the sheet as a DataFrame
+df = get_as_dataframe(worksheet)
+
+# Display data in Streamlit
+st.write("Google Sheet Data:", df)
