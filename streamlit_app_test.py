@@ -201,20 +201,6 @@ elif page == "Make Prediction":
         'time_since_first_visit'
     ])
 
-# Ensure the columns are in the same order as the trained model
-model_feature_order = [
-    'weekly_visits',
-    'total_dependents_3_months',
-    'pickup_count_last_30_days',
-    'pickup_count_last_14_days',
-    'Holidays',
-    'pickup_week',
-    'postal_code',
-    'time_since_first_visit'
-]
-
-input_data = input_data[model_feature_order]  # Reorder columns to match the model's expected order
-
     
     # Prediction Button
     if st.button("Predict Return Probability"):
