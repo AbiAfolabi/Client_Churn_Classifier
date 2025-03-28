@@ -44,7 +44,7 @@ page = st.sidebar.radio(
 
 # ================== About Page ==================
 if page == "About":
-    st.markdown("""
+    st.markdown(""" 
     ## About This Tool
     
     This application helps IFSSA predict which clients are likely to return for services 
@@ -168,7 +168,7 @@ elif page == "Make Prediction":
             st.warning("Please enter a valid Canadian postal code (e.g., A1A 1A1)")
 
     # Prepare input data (ensure the column order matches the trained model's order)
-    input_data = pd.DataFrame([[
+    input_data = pd.DataFrame([[[
         weekly_visits,
         total_dependents_3_months,
         pickup_count_last_30_days,
@@ -177,7 +177,7 @@ elif page == "Make Prediction":
         pickup_week,
         postal_code.replace(" ", "").upper()[:6] if postal_code else "",
         time_since_first_visit
-    ]], columns=[
+    ]]], columns=[
         'weekly_visits',
         'total_dependents_3_months',
         'pickup_count_last_30_days',
@@ -234,7 +234,7 @@ try:
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
     
     # Use gspread to directly open the public sheet
-    gc = gspread.client.Client(None)  # Ensure no authentication is done
+    gc = gspread.service_account(filename=None)  # Accessing public data
     
     # Open the sheet using the URL (without requiring authentication)
     worksheet = gc.open_by_url(sheet_url).sheet1
