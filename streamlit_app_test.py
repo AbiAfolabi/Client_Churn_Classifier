@@ -232,7 +232,7 @@ elif page == "Make Prediction":
 # Access Public Google Sheet
 try:
     # Access the public sheet by URL without authentication
-    gc = gspread.client.Client(None)
+    gc = gspread.Client(None)
     
     # Open the public sheet by URL
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
