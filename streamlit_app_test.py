@@ -58,12 +58,12 @@ def load_google_sheet():
     worksheet = spreadsheet.get_worksheet(0)
     
     # Fetch the data as a DataFrame
-    #sheet_data = get_as_dataframe(worksheet)
-    #return sheet_data
+    sheet_data = get_as_dataframe(worksheet)
+    return sheet_data
 
     # Fetch and print the data from the first worksheet
-    data = worksheet.get_all_records()
-    print(data)
+    #data = worksheet.get_all_records()
+    #print(data)
 
 # Load Google Sheets data
 try:
