@@ -229,19 +229,28 @@ elif page == "Make Prediction":
 
 # ================== GSpread Integration (Public Access) ==================
 
+# ================== GSpread Integration (Public Access) ==================
+
 # Access Public Google Sheet without authentication
 try:
-    gc = gspread.Client(None)  # No authentication required for public sheet
-    
     # Access the public sheet by URL
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
+    
+    # Open the sheet using gspread
+    gc = gspread.Client(None)  # No authentication required for public sheet
     worksheet = gc.open_by_url(sheet_url).sheet1
 
     # Get data from the sheet as a DataFrame
     df = get_as_dataframe(worksheet)
 
     # Display data in Streamlit
-    st.write("Google Sheet Data:", df)
+    st.write("Google Sheet Data:", df)  # This will print the sheet data on the page
+
+    # Check if the data is successfully fetched by printing the shape of the DataFrame
+    st.write("Shape of data fetched from Google Sheets:", df.shape)
+    
+    # Confirm successful connection
+    st.success("✅ Successfully connected to Google Sheet and fetched data.")
 
 except Exception as e:
-    st.error(f"Unexpected error: {e}")
+    st.error(f"❌ Error connecting to Google Sheet: {str(e)}")
