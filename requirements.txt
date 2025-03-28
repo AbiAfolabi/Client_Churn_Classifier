@@ -5,6 +5,7 @@ gspread-dataframe
 matplotlib
 seaborn
 scikit-learn
+oauth2client
 
 # numpy
 # joblib
