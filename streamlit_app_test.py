@@ -1,19 +1,19 @@
 import streamlit as st
-
-# Set page configuration - this should be the first Streamlit command
-st.set_page_config(
-    layout="wide",
-    page_title="IFSSA Return Predictor"
-)
-
-# Now import other necessary libraries
 import pandas as pd
 import numpy as np
 import joblib
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
-import re  # Added this import for postal code validation
+import re
+import gspread
+from gspread_dataframe import get_as_dataframe
+
+# Set page configuration
+st.set_page_config(
+    layout="wide",
+    page_title="IFSSA Return Predictor"
+)
 
 # Load and Display Logos
 col1, col2, _ = st.columns([0.15, 0.15, 0.7])
@@ -105,19 +105,6 @@ elif page == "Feature Analysis":
     - Holiday effects are 10^90 times more significant than chance
     - Postal code explains location-based patterns (p=2.4e-16)
     """)
-    
-    # Feature correlations (placeholder - replace with your actual data)
-    st.markdown("### Feature Relationships")
-    try:
-        # Generate sample correlation data if real data isn't available
-        corr_data = pd.DataFrame(np.random.rand(6, 6), 
-                               columns=chi_df.index[:6], 
-                               index=chi_df.index[:6])
-        plt.figure(figsize=(10, 8))
-        sns.heatmap(corr_data, annot=True, cmap='coolwarm', center=0)
-        st.pyplot(plt)
-    except:
-        st.warning("Correlation data not available. Displaying sample visualization.")
 
 # ================== Make Prediction Page ==================
 elif page == "Make Prediction":
@@ -180,8 +167,8 @@ elif page == "Make Prediction":
         if postal_code and not validate_postal_code(postal_code):
             st.warning("Please enter a valid Canadian postal code (e.g., A1A 1A1)")
 
-    # Prepare input data
-    input_data = pd.DataFrame([[ 
+    # Prepare input data (ensure the column order matches the trained model's order)
+    input_data = pd.DataFrame([[
         weekly_visits,
         total_dependents_3_months,
         pickup_count_last_30_days,
@@ -194,36 +181,3 @@ elif page == "Make Prediction":
         'weekly_visits',
         'total_dependents_3_months',
         'pickup_count_last_30_days',
-        'pickup_count_last_14_days',
-        'Holidays',
-        'pickup_week',
-        'postal_code',
-        'time_since_first_visit'
-    ])
-
-    
-    # Prediction Button
-    if st.button("Predict Return Probability"):
-        if not postal_code:
-            st.error("Please enter a postal code")
-        elif not validate_postal_code(postal_code):
-            st.error("Please enter a valid Canadian postal code (format: A1A 1A1)")
-        elif model is None:
-            st.error("❌ No trained model found.")
-        else:
-            try:
-                prediction = model.predict(input_data)
-                probability = model.predict_proba(input_data)[:, 1][0]
-                
-                st.markdown("<h3 style='color: #ff33aa;'>Prediction Result</h3>", unsafe_allow_html=True)
-                st.write(f"🎯 **Predicted Outcome:** {'Will Return' if prediction[0] == 1 else 'Will Not Return'}")
-                st.write(f"📊 **Probability of Returning:** {probability:.1%}")
-                
-                if prediction[0] == 1:
-                    st.success("✅ This client is likely to return within 3 months")
-                else:
-                    st.warning("⚠️ This client is unlikely to return within 3 months")
-                    
-            except Exception as e:
-                st.error(f"❌ Error making prediction: {str(e)}")
-
