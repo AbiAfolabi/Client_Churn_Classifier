@@ -35,7 +35,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ================== Google Sheets Connection ==================
+# ================== Google Sheets Connection (No Authentication) ==================
 # Fetch Data from Google Sheets (Public)
 @st.cache_data
 def load_google_sheet():
@@ -46,7 +46,7 @@ def load_google_sheet():
     spreadsheet_id = sheet_url.split('/')[5]
     
     # Open the sheet using the spreadsheet ID
-    gc = gspread.service_account(filename='path_to_your_service_account_credentials.json')  # Path to service account credentials
+    gc = gspread.authorize(None)  # No authentication needed for public sheets
     spreadsheet = gc.open_by_key(spreadsheet_id)
     
     # Select the first worksheet
