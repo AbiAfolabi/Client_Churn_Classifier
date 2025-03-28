@@ -1,12 +1,16 @@
 streamlit
 pandas
-numpy
-scikit-learn
-joblib
+gspread
+gspread-dataframe
 matplotlib
 seaborn
-plotly
-xgboost
-lightgbm
-tensorflow
-torch
+scikit-learn
+
+# numpy
+# joblib
+# plotly
+# xgboost
+# lightgbm
+# tensorflow
+# torch
+
