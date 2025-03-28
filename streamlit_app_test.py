@@ -233,7 +233,7 @@ elif page == "Make Prediction":
 gc = gspread.authorize(credentials=None)  # This works if your sheet is public
 
 # Access the public sheet by URL
-sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTsviaNxfpcty4yoqQxE93BnJu4UYxuXR21kw11v47rS6tx-iZkfYdcReCqyaR5jGZSDX-VDPt6dy5F/pubhtml/pubhtml"
+sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
 
 worksheet = gc.open_by_url(sheet_url).sheet1
 
