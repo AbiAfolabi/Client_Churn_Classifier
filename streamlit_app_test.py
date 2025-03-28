@@ -38,13 +38,13 @@ st.markdown(
 # ================== Navigation ==================
 page = st.sidebar.radio(
     "Navigation",
-    ["About", "Feature Analysis", "Make Prediction", "View Google Sheet Data"],  # Added "View Google Sheet Data"
+    ["About", "Feature Analysis", "Make Prediction"],
     index=2
 )
 
 # ================== About Page ==================
 if page == "About":
-    st.markdown(""" 
+    st.markdown("""
     ## About This Tool
     
     This application helps IFSSA predict which clients are likely to return for services 
@@ -168,7 +168,7 @@ elif page == "Make Prediction":
             st.warning("Please enter a valid Canadian postal code (e.g., A1A 1A1)")
 
     # Prepare input data (ensure the column order matches the trained model's order)
-    input_data = pd.DataFrame([[[
+    input_data = pd.DataFrame([[
         weekly_visits,
         total_dependents_3_months,
         pickup_count_last_30_days,
@@ -177,7 +177,7 @@ elif page == "Make Prediction":
         pickup_week,
         postal_code.replace(" ", "").upper()[:6] if postal_code else "",
         time_since_first_visit
-    ]]], columns=[
+    ]], columns=[
         'weekly_visits',
         'total_dependents_3_months',
         'pickup_count_last_30_days',
@@ -201,6 +201,8 @@ elif page == "Make Prediction":
     ]
 
     input_data = input_data[model_feature_order]  # Reorder columns to match the model's expected order
+
+    
 
     # Prediction Button
     if st.button("Predict Return Probability"):
@@ -227,29 +229,3 @@ elif page == "Make Prediction":
             except Exception as e:
                 st.error(f"❌ Error making prediction: {str(e)}")
 
-# ================== View Google Sheet Data ==================
-# Access Public Google Sheet without authentication
-try:
-    # URL of the public Google Sheet
-    sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
-    
-    # Use gspread to directly open the public sheet
-    gc = gspread.service_account(filename=None)  # Accessing public data
-    
-    # Open the sheet using the URL (without requiring authentication)
-    worksheet = gc.open_by_url(sheet_url).sheet1
-    
-    # Get the data from the Google Sheet as a DataFrame
-    df = get_as_dataframe(worksheet)
-    
-    # Displaying the data
-    st.write("Data fetched from Google Sheets:")
-    st.write("Shape of the data:", df.shape)  # Output the shape of the DataFrame
-    st.write(df.head())  # Show the first few rows of the DataFrame
-    
-    # Confirmation message if the data is successfully fetched
-    st.success("✅ Successfully connected to Google Sheet and fetched data.")
-    
-except Exception as e:
-    # If there is any error, display the error message
-    st.error(f"❌ Error connecting to Google Sheet: {str(e)}")
