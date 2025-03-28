@@ -44,7 +44,7 @@ def load_google_sheet():
 
     # Use the service account credentials JSON file (ensure the path is correct)
     credentials = ServiceAccountCredentials.from_json_keyfile_name(
-        'path/to/your-service-account-file.json', scope
+        'service-account-file.json', scope
     )
 
     # Authorize and create a gspread client
