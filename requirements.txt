@@ -6,6 +6,11 @@ matplotlib
 seaborn
 scikit-learn
 oauth2client
+gspread
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+
 
 # numpy
 # joblib
