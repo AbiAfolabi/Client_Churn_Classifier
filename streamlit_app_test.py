@@ -252,5 +252,5 @@ df = get_as_dataframe(worksheet)
 st.write("Google Sheet Data:", df)
 
 
-streamlit run app.py
+# streamlit run app.py
 
