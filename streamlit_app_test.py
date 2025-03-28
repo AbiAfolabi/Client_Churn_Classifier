@@ -8,8 +8,6 @@ import seaborn as sns
 import re
 import gspread
 from gspread_dataframe import get_as_dataframe
-from google.auth.transport.requests import Request
-from google.auth import exceptions
 
 # Set page configuration
 st.set_page_config(
@@ -231,12 +229,12 @@ elif page == "Make Prediction":
 
 # ================== GSpread Integration ==================
 
-# Use Google Sheets API with service account
+# Access Public Google Sheet
 try:
-    # Authenticate with the service account and access the public sheet
-    gc = gspread.service_account(filename='path_to_your_service_account_json_file.json')
-
-    # Access the public sheet by URL
+    # Access the public sheet by URL without authentication
+    gc = gspread.client.Client(None)
+    
+    # Open the public sheet by URL
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
     worksheet = gc.open_by_url(sheet_url).sheet1
 
