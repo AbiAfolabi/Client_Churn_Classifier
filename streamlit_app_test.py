@@ -228,20 +228,28 @@ elif page == "Make Prediction":
                 st.error(f"❌ Error making prediction: {str(e)}")
 
 # ================== View Google Sheet Data ==================
-elif page == "View Google Sheet Data":
-    st.markdown("<h2 style='color: #33aaff;'>Google Sheet Data</h2>", unsafe_allow_html=True)
-
-    # Fetch data from the public Google Sheet and display it
-    gc = gspread.service_account()  # Skips authentication for public sheets
-
-    # Provide the URL of the public Google Sheet
-    sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXUCJRkYyqkfNFbyjRkB5NyP4pL4Khh00bmHegBZOpFf9BparWuCsxx7-C7m-Uy6DNBn7fSBs21NKi/pubhtml"
-
-    # Open the sheet by URL
+try:
+    # Access the public sheet by URL
+    sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
+    
+    # Open the sheet using gspread (No authentication for public access)
+    gc = gspread.Client(None)  # No authentication required for public sheet
+    st.write("Trying to connect to Google Sheet...")  # Debug message to indicate connection attempt
+    
+    # Open the sheet using the URL
     worksheet = gc.open_by_url(sheet_url).sheet1
-
-    # Get data from the sheet as a DataFrame
+    
+    # Fetch the data from the sheet as a DataFrame
     df = get_as_dataframe(worksheet)
-
-    # Display the data in the Streamlit app
-    st.write("Google Sheet Data:", df)
+    
+    # Debugging: Check the data shape and preview the first few rows
+    st.write("Data fetched from Google Sheets:")
+    st.write("Shape of the data:", df.shape)  # Output the shape of the DataFrame
+    st.write(df.head())  # Display the first few rows of the data
+    
+    # Display confirmation message if data is fetched successfully
+    st.success("✅ Successfully connected to Google Sheet and fetched data.")
+    
+except Exception as e:
+    # If there's an error, display the error message
+    st.error(f"❌ Error connecting to Google Sheet: {str(e)}")
