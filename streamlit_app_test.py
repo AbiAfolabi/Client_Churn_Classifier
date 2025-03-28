@@ -227,7 +227,7 @@ elif page == "Make Prediction":
             except Exception as e:
                 st.error(f"❌ Error making prediction: {str(e)}")
 
-!pip install streamlit pandas gspread gspread-dataframe
+# !pip install streamlit pandas gspread gspread-dataframe
 
 import streamlit as st
 import pandas as pd
