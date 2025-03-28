@@ -228,12 +228,14 @@ elif page == "Make Prediction":
                 st.error(f"❌ Error making prediction: {str(e)}")
 
 # ================== View Google Sheet Data ==================
+# Access Public Google Sheet without authentication
 try:
     # Access the public sheet by URL
     sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
     
-    # Open the sheet using gspread (No authentication for public access)
-    gc = gspread.Client(None)  # No authentication required for public sheet
+    # Using gspread to connect without authentication (works for public sheets)
+    gc = gspread.service_account(filename=None)  # This will attempt to connect to a public sheet without a service account
+    
     st.write("Trying to connect to Google Sheet...")  # Debug message to indicate connection attempt
     
     # Open the sheet using the URL
