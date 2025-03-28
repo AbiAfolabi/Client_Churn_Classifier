@@ -202,8 +202,6 @@ elif page == "Make Prediction":
 
     input_data = input_data[model_feature_order]  # Reorder columns to match the model's expected order
 
-    
-
     # Prediction Button
     if st.button("Predict Return Probability"):
         if not postal_code:
@@ -229,3 +227,18 @@ elif page == "Make Prediction":
             except Exception as e:
                 st.error(f"❌ Error making prediction: {str(e)}")
 
+# ================== GSpread Integration ==================
+
+# Use public access to read the Google Sheet without authentication
+gc = gspread.authorize(credentials=None)  # This works if your sheet is public
+
+# Access the public sheet by URL
+sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTsviaNxfpcty4yoqQxE93BnJu4UYxuXR21kw11v47rS6tx-iZkfYdcReCqyaR5jGZSDX-VDPt6dy5F/pubhtml/pubhtml"
+
+worksheet = gc.open_by_url(sheet_url).sheet1
+
+# Get data from the sheet as a DataFrame
+df = get_as_dataframe(worksheet)
+
+# Display data in Streamlit
+st.write("Google Sheet Data:", df)
