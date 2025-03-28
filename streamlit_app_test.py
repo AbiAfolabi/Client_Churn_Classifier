@@ -8,6 +8,8 @@ import seaborn as sns
 import re
 import gspread
 from gspread_dataframe import get_as_dataframe
+from google.auth.transport.requests import Request
+from google.auth import exceptions
 
 # Set page configuration
 st.set_page_config(
@@ -168,7 +170,7 @@ elif page == "Make Prediction":
             st.warning("Please enter a valid Canadian postal code (e.g., A1A 1A1)")
 
     # Prepare input data (ensure the column order matches the trained model's order)
-    input_data = pd.DataFrame([[
+    input_data = pd.DataFrame([[ 
         weekly_visits,
         total_dependents_3_months,
         pickup_count_last_30_days,
@@ -229,16 +231,22 @@ elif page == "Make Prediction":
 
 # ================== GSpread Integration ==================
 
-# Use public access to read the Google Sheet without authentication
-gc = gspread.authorize(credentials=None)  # This works if your sheet is public
+# Try accessing the public sheet
+try:
+    # Public sheets can be accessed without authentication
+    gc = gspread.authorize(None)  # Works if the sheet is public
+    
+    # Access the public sheet by URL
+    sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
+    worksheet = gc.open_by_url(sheet_url).sheet1
 
-# Access the public sheet by URL
-sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwjh9k0hk536tHDO3cgmCb6xvu6GMAcLUUW1aVqKI-bBw-3mb5mz1PTRZ9XSfeLnlmrYs1eTJH3bvJ/pubhtml"
+    # Get data from the sheet as a DataFrame
+    df = get_as_dataframe(worksheet)
 
-worksheet = gc.open_by_url(sheet_url).sheet1
+    # Display data in Streamlit
+    st.write("Google Sheet Data:", df)
 
-# Get data from the sheet as a DataFrame
-df = get_as_dataframe(worksheet)
-
-# Display data in Streamlit
-st.write("Google Sheet Data:", df)
+except exceptions.GoogleAuthError as e:
+    st.error(f"Error accessing Google Sheets: {e}")
+except Exception as e:
+    st.error(f"Unexpected error: {e}")
